@@ -1,0 +1,40 @@
+# AI PR Reviewer Bot — Configuration
+
+models:
+  security_agent: "gpt-4o-mini"   # Fast and cost-efficient for structured output
+  style_agent: "gpt-4o-mini"      # Same — structured scoring doesn't need GPT-4
+  summary_agent: "gpt-4o-mini"    # Upgrade to gpt-4o for richer narratives
+  fallback: "gpt-4o-mini"         # Used if primary model fails
+
+routing:
+  skip_style_on_critical: true    # Skip style review if critical security found
+  max_retries: 2                  # Retry failed agent calls before erroring
+  fallback_on_error: true         # Use fallback model on API errors
+
+agents:
+  fetcher:
+    enabled: true
+    supported_audio_extensions: []
+  parser:
+    enabled: true
+    max_files: 50                 # Skip diffs with more than 50 files
+  security:
+    enabled: true
+    owasp_categories:             # OWASP Top 10 categories to check
+      - "A01 Injection"
+      - "A02 Broken Authentication"
+      - "A03 Sensitive Data Exposure"
+      - "A05 Security Misconfiguration"
+      - "A07 XSS"
+      - "A08 Insecure Deserialization"
+  style:
+    enabled: true
+    min_score_for_approval: 7.5   # Quality score threshold for approval
+  summary:
+    enabled: true
+    post_to_github: false         # Set true to post review back to PR
+
+ui:
+  title: "AI PR Reviewer Bot"
+  show_pipeline_details: true
+  show_agent_flow: true

@@ -1,0 +1,14 @@
+--- api.py
++++ api.py
+@@ -1,10 +1,12 @@
+ import os
++import subprocess
+
+ def run_command(user_input):
+-    print(f"Running: {user_input}")
++    subprocess.call(user_input, shell=True)
+
+ def get_config():
+-    api_key = "sk-prod-12345secret"
++    api_key = os.getenv("API_KEY")
+     return api_key

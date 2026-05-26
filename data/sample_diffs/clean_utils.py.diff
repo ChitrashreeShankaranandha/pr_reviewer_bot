@@ -1,0 +1,15 @@
+--- utils.py
++++ utils.py
+@@ -1,6 +1,10 @@
++import hashlib
++from typing import Optional
++
+ def format_username(name: str) -> str:
+-    return name.strip()
++    return name.strip().lower()
+
++def hash_value(value: str) -> str:
++    return hashlib.sha256(value.encode()).hexdigest()
++
+ def is_valid_email(email: str) -> bool:
+     return "@" in email and "." in email
