@@ -50,7 +50,8 @@ If no issues were found in a category, say so positively."""
 
 def determine_verdict(
     security_findings: SecurityFindings = None,
-    quality_score: QualityScore = None
+    quality_score: QualityScore = None,
+    llm_security_report=None
 ) -> str:
     """
     Determine PR verdict using deterministic rules.
@@ -71,6 +72,14 @@ def determine_verdict(
     # Quality is decent but not great
     if quality_score and quality_score.overall_score < 7.5:
         return "needs_changes"
+    
+    # Blocked by LLM Security Guard = always reject
+    if llm_security_report and llm_security_report.blocked:
+        return "rejected"
+
+    # Critical or high security = always reject
+    if security_findings and not security_findings.passed:
+        return "rejected"
 
     return "approved"
 
@@ -128,6 +137,14 @@ def build_prompt(state: PipelineState) -> str:
             parts.append(f"  Improvements: {', '.join(q.improvements)}")
         parts.append("")
 
+    # LLM Security Guard block note
+    if state.llm_security_report and state.llm_security_report.blocked:
+        parts.append(f"IMPORTANT: Pipeline was blocked by LLM Security Guard.")
+        parts.append(f"Reason: Malicious content detected in diff ({state.llm_security_report.risk_level} risk).")
+        parts.append(f"Threats found: {len(state.llm_security_report.threats)}")
+        for t in state.llm_security_report.threats:
+            parts.append(f"  - [{t.severity.upper()}] {t.threat_type}: {t.evidence[:100]}")
+
     # Skip style note
     if state.skip_style:
         parts.append("Note: Style review was skipped due to critical security findings.")
@@ -175,7 +192,8 @@ def run(state: PipelineState) -> PipelineState:
         # Determine verdict with deterministic logic
         verdict = determine_verdict(
             state.security_findings,
-            state.quality_score
+            state.quality_score,
+            state.llm_security_report
         )
 
         state.review_summary = ReviewSummary(

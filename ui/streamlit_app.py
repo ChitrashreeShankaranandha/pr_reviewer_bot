@@ -191,6 +191,37 @@ if st.session_state.get("has_result") and st.session_state.get("result"):
         )
         st.markdown("")
 
+    
+    # ── LLM Security Guard Results ────────────────────────────────
+if result.get("llm_security_report"):
+    lg = result["llm_security_report"]
+
+    if lg.blocked:
+        st.error(f"🛡️ Pipeline blocked by LLM Security Guard — {lg.risk_level.upper()} risk detected")
+    elif lg.threats:
+        st.warning(f"🛡️ LLM Security Guard: {len(lg.threats)} threat(s) detected — proceeding with caution")
+    else:
+        st.success("🛡️ LLM Security Guard: Diff is clean — no injection attempts detected")
+
+    if lg.threats:
+        with st.expander(f"🛡️ LLM Threat Details ({len(lg.threats)} found)"):
+            for threat in lg.threats:
+                threat_colors = {
+                    "critical": "🔴",
+                    "high": "🟠",
+                    "medium": "🟡",
+                    "low": "🟢"
+                }
+                st.markdown(
+                    f"{threat_colors.get(threat.severity, '⚪')} "
+                    f"**[{threat.severity.upper()}] {threat.threat_type.replace('_', ' ').title()}**"
+                )
+                st.markdown(f"📍 Location: `{threat.location}`")
+                st.markdown(f"🔍 Evidence: `{threat.evidence[:100]}`")
+                st.markdown(f"💡 {threat.recommendation}")
+                st.divider()
+                
+
     # ── Three columns layout ───────────────────────────────────
     col_left, col_right = st.columns([1, 1])
 

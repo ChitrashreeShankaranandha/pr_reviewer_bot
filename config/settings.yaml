@@ -18,6 +18,11 @@ agents:
   parser:
     enabled: true
     max_files: 50                 # Skip diffs with more than 50 files
+  llm_security_guard:
+    enabled: true
+    mode: "block"           # warn = flag but continue | block = stop pipeline
+    max_diff_chars: 50000   # flag diffs larger than this
+    run_llm_judge: true     # secondary LLM check for subtle attacks
   security:
     enabled: true
     owasp_categories:             # OWASP Top 10 categories to check
