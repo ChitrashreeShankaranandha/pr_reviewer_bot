@@ -25,7 +25,7 @@ Code Fetcher Agent       →  Fetches PR diff via GitHub API or paste
 Code Parser Agent        →  Parses diff into structured FileDiff objects
 ↓
 LLM Security Guard       →  OWASP LLM Top 10 — detects prompt injection,
-↓                     output manipulation, data exfiltration
+↓                           output manipulation, data exfiltration
 ┌──────────────────────────────────────┐
 │ Malicious diff detected?             │
 │ YES → block → jump to Summary        │
@@ -65,24 +65,27 @@ VERDICT: ✅ APPROVED / ⚠️ NEEDS CHANGES / ❌ REJECTED
 | Code Security | OWASP Top 10 | SQL Injection, Broken Auth, Sensitive Data, XSS, Misconfiguration |
 | LLM Security | OWASP LLM Top 10 | LLM01 Prompt Injection, LLM02 Output Manipulation, LLM04 Model DoS, LLM06 Data Exfiltration, LLM08 Excessive Agency |
 
-## Design Principles
+## 🎨 Design Principles
 
 | Principle | Implementation |
 |---|---|
-| **vLLM Ready** | Code Parser Agent designed for SLM via vLLM inference server |
-| **SLM Optimized** | CodeLlama-7B / Mistral-7B for fast, cheap code parsing |
-| **Task-based LLM** | Each agent has exactly one responsibility |
-| **Coding Agent** | Full system reads, understands, and critiques code |
-| **Agent-to-Agent** | LangGraph passes structured Pydantic state between agents |
+| **SLM** | Code Parser Agent uses gemma3:4b (4B parameter model) via Ollama for local inference |
+| **vLLM Ready** | Parser interface compatible with vLLM server — swap Ollama endpoint for vLLM in config |
+| **Task-based LLM** | Each agent has exactly one responsibility — no monolithic prompts |
+| **Coding Agent** | Full system reads, understands, and critiques code autonomously |
+| **Agent-to-Agent** | LangGraph passes structured Pydantic state between all 6 agents |
 
-## Tech Stack
+## ⚙️ Tech Stack
 
-- **Orchestration**: LangGraph
-- **LLMs**: GPT-4o-mini (OpenAI)
-- **Validation**: Pydantic v2
-- **GitHub Integration**: PyGithub
-- **UI**: Streamlit
-- **Deployment**: Hugging Face Spaces
+| Component | Technology |
+|---|---|
+| Agent Orchestration | LangGraph |
+| Language Models | GPT-4o-mini (OpenAI) |
+| Small Language Model | gemma3:4b via Ollama (local inference) |
+| State Management | Pydantic v2 |
+| GitHub Integration | PyGithub |
+| UI | Streamlit |
+| Deployment | Hugging Face Spaces |
 
 ## Setup
 
@@ -116,10 +119,10 @@ python main.py
 ### 5. Run tests
 ```bash
 pytest tests/ -v
-# Expected: 84 passed
+# Expected: 115 passed
 ```
 
-## Sample Diffs
+## 🧪 Sample Diffs
 
 Three sample diffs are included in `data/sample_diffs/`:
 
@@ -129,7 +132,7 @@ Three sample diffs are included in `data/sample_diffs/`:
 | `command_injection.py.diff` | ❌ REJECTED | Command injection via shell=True |
 | `clean_utils.py.diff` | ✅ APPROVED | Clean code, no issues |
 
-## Agent Prompts
+## 📝 Agent Prompts
 
 Each agent uses a specialized system prompt:
 

@@ -4,7 +4,7 @@ Tests for Code Parser Agent.
 """
 
 import pytest
-from agents.code_parser_agent import detect_language, parse_diff, summarize_diff, run
+from agents.code_parser_agent import detect_language, parse_diff_rules as parse_diff, summarize_diff, run
 from utils.pipeline_state import PipelineState
 
 
