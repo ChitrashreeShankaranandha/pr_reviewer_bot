@@ -54,6 +54,30 @@ class SecurityFindings(BaseModel):
     passed: bool  # True if no critical/high findings
 
 
+# ── LLM Security Guard Output ──────────────────────────────────
+
+class LLMThreat(BaseModel):
+    threat_type: Literal[
+        "prompt_injection",
+        "output_manipulation", 
+        "data_exfiltration",
+        "excessive_agency",
+        "oversized_input"
+    ]
+    severity: Literal["critical", "high", "medium", "low"]
+    location: str        # where in the diff it was found
+    evidence: str        # the suspicious text
+    recommendation: str  # what to do about it
+
+
+class LLMSecurityReport(BaseModel):
+    threats: list[LLMThreat]
+    injection_detected: bool
+    risk_level: Literal["critical", "high", "medium", "low", "none"]
+    safe_to_proceed: bool
+    blocked: bool = False
+
+
 # ── Style & Quality Agent Output ───────────────────────────────
 
 class QualityScore(BaseModel):
@@ -88,6 +112,7 @@ class PipelineState(BaseModel):
     pr_metadata: Optional[PRMetadata] = None
     raw_diff: Optional[str] = None
     parsed_diff: Optional[ParsedDiff] = None
+    llm_security_report: Optional[LLMSecurityReport] = None
     security_findings: Optional[SecurityFindings] = None
     quality_score: Optional[QualityScore] = None
     review_summary: Optional[ReviewSummary] = None
