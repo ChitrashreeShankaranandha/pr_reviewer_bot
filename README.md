@@ -15,28 +15,36 @@ A multi-agent AI system that automatically reviews pull requests for security vu
 
 ## 🏗️ Architecture
 
-Five specialized agents communicate via structured Pydantic state handoffs — each agent does exactly one job and passes its output to the next.
+Six specialized agents communicate via structured Pydantic state handoffs — each agent does exactly one job and passes its output to the next.
 
 ```
 Input (PR URL or pasted diff)
-         ↓
-  Code Fetcher Agent       →  Fetches PR diff via GitHub API or paste
-         ↓
-  Code Parser Agent        →  Parses diff into structured FileDiff objects
-         ↓
-  Security Review Agent    →  OWASP Top 10 vulnerability analysis
-         ↓
-  ┌──────────────────────────────────────┐
-  │ Critical issue found?                │
-  │ YES → skip to Summary                │
-  │ NO  → continue to Style Agent        │
-  └──────────────────────────────────────┘
-         ↓
-  Style & Quality Agent    →  Scores readability, naming, complexity
-         ↓
-  Summary Agent            →  Final verdict + action items
-         ↓
-  VERDICT: ✅ APPROVED / ⚠️ NEEDS CHANGES / ❌ REJECTED
+↓
+Code Fetcher Agent       →  Fetches PR diff via GitHub API or paste
+↓
+Code Parser Agent        →  Parses diff into structured FileDiff objects
+↓
+LLM Security Guard       →  OWASP LLM Top 10 — detects prompt injection,
+↓                     output manipulation, data exfiltration
+┌──────────────────────────────────────┐
+│ Malicious diff detected?             │
+│ YES → block → jump to Summary        │
+│ NO  → proceed to Security Review     │
+└──────────────────────────────────────┘
+↓
+Security Review Agent    →  OWASP Top 10 vulnerability analysis
+↓
+┌──────────────────────────────────────┐
+│ Critical issue found?                │
+│ YES → skip to Summary                │
+│ NO  → continue to Style Agent        │
+└──────────────────────────────────────┘
+↓
+Style & Quality Agent    →  Scores readability, naming, complexity
+↓
+Summary Agent            →  Final verdict + action items
+↓
+VERDICT: ✅ APPROVED / ⚠️ NEEDS CHANGES / ❌ REJECTED
 ```
 
 ## 🤖 Agents
@@ -45,9 +53,17 @@ Input (PR URL or pasted diff)
 |---|---|---|
 | **Code Fetcher** | Connects to GitHub API or accepts pasted diff | `raw_diff` |
 | **Code Parser** | Parses diff into structured FileDiff objects with language detection | `parsed_diff` |
+| **LLM Security Guard** | OWASP LLM Top 10 — detects prompt injection, output manipulation, data exfiltration, excessive agency, oversized input | `llm_security_report` |
 | **Security Review** | OWASP Top 10 vulnerability analysis with severity tagging | `security_findings` |
 | **Style & Quality** | Scores readability, naming, complexity, best practices (0–10) | `quality_score` |
 | **Summary** | Aggregates all findings into final verdict and action items | `review_summary` |
+
+## 🛡️ Security Coverage
+
+| Layer | Standard | Coverage |
+|---|---|---|
+| Code Security | OWASP Top 10 | SQL Injection, Broken Auth, Sensitive Data, XSS, Misconfiguration |
+| LLM Security | OWASP LLM Top 10 | LLM01 Prompt Injection, LLM02 Output Manipulation, LLM04 Model DoS, LLM06 Data Exfiltration, LLM08 Excessive Agency |
 
 ## Design Principles
 
@@ -117,7 +133,8 @@ Three sample diffs are included in `data/sample_diffs/`:
 
 Each agent uses a specialized system prompt:
 
-- **Security Agent**: OWASP Top 10 checklist prompt — returns structured JSON findings with severity, category, and recommendation per issue
+- **LLM Security Guard**: OWASP LLM Top 10 pattern matching + LLM-as-judge secondary check
+- **Security Agent**: OWASP Top 10 checklist — returns structured JSON findings with severity, category, and recommendation per issue
 - **Style Agent**: Senior engineer rubric — scores readability, naming, complexity, best practices 0-10
 - **Summary Agent**: Engineering lead synthesizer — aggregates all findings into verdict + action items
 
@@ -126,20 +143,21 @@ Each agent uses a specialized system prompt:
 ```
 pr_reviewer_bot/
 ├── agents/
-│   ├── code_fetcher_agent.py      
-│   ├── code_parser_agent.py       
-│   ├── security_review_agent.py   
-│   ├── style_quality_agent.py     
-│   └── summary_agent.py           
+│   ├── code_fetcher_agent.py
+│   ├── code_parser_agent.py
+│   ├── llm_security_guard.py
+│   ├── security_review_agent.py
+│   ├── style_quality_agent.py
+│   └── summary_agent.py
 ├── ui/
-│   └── streamlit_app.py           
+│   └── streamlit_app.py
 ├── utils/
-│   └── pipeline_state.py          
-├── tests/                         
+│   └── pipeline_state.py
+├── tests/
 ├── config/
-│   └── settings.yaml              
+│   └── settings.yaml
 ├── data/
-│   └── sample_diffs/              
-├── main.py                        
+│   └── sample_diffs/
+├── main.py
 └── requirements.txt
 ```
