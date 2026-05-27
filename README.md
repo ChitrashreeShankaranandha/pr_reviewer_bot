@@ -164,3 +164,7 @@ pr_reviewer_bot/
 ├── main.py
 └── requirements.txt
 ```
+## 🌐 Live Demo
+
+**Deployed on Hugging Face Spaces:**  
+👉 https://huggingface.co/spaces/ChitrashreeShankaranandha/pr-reviewer-bot
