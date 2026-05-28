@@ -193,8 +193,8 @@ if st.session_state.get("has_result") and st.session_state.get("result"):
 
     
     # ── LLM Security Guard Results ────────────────────────────────
-if result.get("llm_security_report"):
-    lg = result["llm_security_report"]
+    if result.get("llm_security_report"):
+        lg = result["llm_security_report"]
 
     if lg.blocked:
         st.error(f"🛡️ Pipeline blocked by LLM Security Guard — {lg.risk_level.upper()} risk detected")
